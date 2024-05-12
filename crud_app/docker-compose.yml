@@ -1,0 +1,43 @@
+version: '2.4'
+
+services:
+  app:
+    volumes:
+      - ./app:/app
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MYSQLCLIENT_CFLAGS: "-I/usr/include/mysql"
+        MYSQLCLIENT_LDFLAGS: "-L/usr/lib -lmysqlclient"
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
+      - MYSQLCLIENT_CFLAGS=-I/usr/include/mysql
+      - MYSQLCLIENT_LDFLAGS=-L/usr/lib/x86_64-linux-gnu -lmysqlclient
+      - DATABASE_URL=mysql+pymysql://root@db:3306/app
+    networks:
+      - red
+  db:
+    image: mariadb
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_DATABASE: app
+    ports:
+      - '3306:3306'
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - red
+
+volumes:
+  db_data:
+
+networks:
+  red:
+    external: true
